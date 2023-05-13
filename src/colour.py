@@ -3,6 +3,7 @@
 #
 # Description: This file contains the Colour related class which is used to represent
 # a colour in the scene.
+import matplotlib.colors as colors
 
 
 class Colour:
@@ -28,4 +29,17 @@ class Colour:
         if self.isGradient():
             return self.rawColour[index]
         else:
-            return self.getSingleColour()
+            return self.rawColour
+
+
+storedCmaps = {}
+
+
+def getOrMakeCMAP(a, b):
+    key = "light_" + a + "_" + b
+    if key in storedCmaps:
+        return storedCmaps[key]
+    else:
+        newCmap = colors.LinearSegmentedColormap.from_list(key, [a, b])
+        storedCmaps[key] = newCmap
+        return newCmap

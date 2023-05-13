@@ -6,7 +6,9 @@
 
 # Dependencies on matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import matplotlib.patches as pltpatches
+import numpy as np
 
 import stage
 import colour as col
@@ -40,17 +42,18 @@ class Light:
         lightCirclePosition = [middleOfStage + self.position, c.LIGHT_SOURCE_RADIUS]
         lightCircleRadius = c.LIGHT_SOURCE_RADIUS
         # Colour can be a list of colours, or a singular colour
-        lightColour = self.colour.getSingleColour()
+        lightColour = self.colour.getColourIndex(0)
         lightCircle = pltpatches.Circle(
             lightCirclePosition,
             lightCircleRadius,
             color=lightColour,
             alpha=self.intensity / 11,
+            linewidth=0,
         )
         ax.add_patch(lightCircle)
 
     # Draws the light from the audience's perspective on the plt axes
-    def draw2D(self, stageInfo: stage.StageDescriptor, ax: plt.Axes):
+    def draw2D(self, stageInfo, ax: plt.Axes):
         middleOfStage = stageInfo.width / 2
         LightConeBeamCentral = [middleOfStage + self.position, stageInfo.height]
         LightConeBeamLeftUpper = [
@@ -61,34 +64,42 @@ class Light:
             LightConeBeamCentral[0] + c.LIGHT_SOURCE_RADIUS,
             LightConeBeamCentral[1],
         ]
-        spreadMult = math.sin(math.radians(self.spread / 2))
-        # TODO: add the spread
+
+        # TODO: Direction for lights
+        spread = (stageInfo.height + c.LIGHT_SOURCE_RADIUS) * math.sin(
+            math.radians(self.spread / 2)
+        )
         LightConeBeamLeftLower = [
-            LightConeBeamCentral[0] - c.LIGHT_SOURCE_RADIUS,
+            LightConeBeamCentral[0] - spread / 2,
             0,
         ]
         LightConeBeamRightLower = [
-            LightConeBeamCentral[0] + c.LIGHT_SOURCE_RADIUS,
+            LightConeBeamCentral[0] + spread / 2,
             0,
         ]
-
         points = [
             LightConeBeamLeftUpper,
             LightConeBeamRightUpper,
             LightConeBeamRightLower,
             LightConeBeamLeftLower,
         ]
-        xPoints = [pos[0] for pos in points]
-        yPoints = [pos[1] for pos in points]
-        colours = [
-            self.colour.getColourIndex(0),
-            self.colour.getColourIndex(0),
-            self.colour.getColourIndex(1),
-            self.colour.getColourIndex(1),
-        ]
-        # TODO: make gradients nice
-        ax.fill(xPoints, yPoints, colours[0], alpha=self.intensity / 11)
-        pass
+
+        # Uses a function to create or get a gradient from these two colours
+        cmap = col.getOrMakeCMAP(
+            self.colour.getColourIndex(0), self.colour.getColourIndex(1)
+        )
+        # Creates topdown gradient
+        gradient = np.atleast_2d(np.linspace(0, 1, stageInfo.height)).T
+        poly = pltpatches.Polygon(points, facecolor="none", edgecolor="none")
+        im = ax.imshow(
+            gradient,
+            cmap=cmap,
+            extent=[0, stageInfo.width, 0, stageInfo.height],
+            interpolation="nearest",
+            alpha=self.intensity / 11,
+        )
+        ax.add_patch(poly)
+        im.set_clip_path(poly)
 
 
 # Collection of lights and/or light groups
@@ -125,3 +136,43 @@ class LightGroup:
         for lightGroup in self.lightGroups:
             if lightGroup != self:
                 lightGroup.draw2D(stageInfo, ax)
+
+    # Sets the colour of all lights in the group
+    def setColour(self, colour):
+        for light in self.lights:
+            light.colour = colour
+        for lightGroup in self.lightGroups:
+            if lightGroup != self:
+                lightGroup.setColour(colour)
+
+    # Sets the position of all lights in the group
+    def setPosition(self, position):
+        for light in self.lights:
+            light.position = position
+        for lightGroup in self.lightGroups:
+            if lightGroup != self:
+                lightGroup.setPosition(position)
+
+    # Sets the direction of all lights in the group
+    def setDirection(self, direction):
+        for light in self.lights:
+            light.direction = direction
+        for lightGroup in self.lightGroups:
+            if lightGroup != self:
+                lightGroup.setDirection(direction)
+
+    # Sets the intensity of all lights in the group
+    def setIntensity(self, intensity):
+        for light in self.lights:
+            light.intensity = intensity
+        for lightGroup in self.lightGroups:
+            if lightGroup != self:
+                lightGroup.setIntensity(intensity)
+
+    # Sets the spread of all lights in the group
+    def setSpread(self, spread):
+        for light in self.lights:
+            light.spread = spread
+        for lightGroup in self.lightGroups:
+            if lightGroup != self:
+                lightGroup.setSpread(spread)
