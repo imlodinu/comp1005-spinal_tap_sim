@@ -1,0 +1,20 @@
+# Spinal Tap Concert Simulation
+
+## Synopsis
+
+Spinal Tap concert simulation for COMP1005/5005 assignment
+
+## Contents
+
+README - readme file for Spinal Tap Concert Simulation
+docs/   - folder with documents
+src/   - folder with code
+
+## Dependencies
+
+matplotlib
+numpy
+
+## Version information
+
+17/04/2023 - initial version of Spinal Tap Concert program
