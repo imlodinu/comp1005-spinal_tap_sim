@@ -1,4 +1,4 @@
-# Light.py
+# light.py
 # Lodinu Kalugalage
 #
 # Description: This file contains the Light related class which is used to represent
@@ -9,12 +9,15 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as pltpatches
 
 import stage
+import colour as col
 import constants as c
 import util as u
 
+import math
+
 
 class Light:
-    colour = None  # Matplotlib plt polygon colour
+    colour = None  # Colour
     position = None  # a 1D representation of the light's position, as it is fixed on the ceiling in a 2D
     direction = None  # 0-180, 0 is facing right, 90 is facing down, 180 is facing left
     intensity = None  # 0-11, 0 is off, 11 is brightest
@@ -22,7 +25,7 @@ class Light:
 
     # Constructor for a `Light`
     def __init__(
-        self, colour="white", position=0.0, direction=90, intensity=5, spread=25
+        self, colour=col.Colour(), position=0.0, direction=90, intensity=5, spread=25
     ):
         self.colour = colour
         self.position = position
@@ -35,18 +38,56 @@ class Light:
         # Position is from the middle of the stage
         middleOfStage = stageInfo.width / 2
         lightCirclePosition = [middleOfStage + self.position, c.LIGHT_SOURCE_RADIUS]
-        # Plot is slightly smaller so there is padding between the light and the edge of the plot
-        lightCircleRadius = c.LIGHT_SOURCE_RADIUS - 10
+        lightCircleRadius = c.LIGHT_SOURCE_RADIUS
         # Colour can be a list of colours, or a singular colour
-        lightColour = u.getSingularColour(self.colour)
+        lightColour = self.colour.getSingleColour()
         lightCircle = pltpatches.Circle(
-            lightCirclePosition, lightCircleRadius, color=lightColour
+            lightCirclePosition,
+            lightCircleRadius,
+            color=lightColour,
+            alpha=self.intensity / 11,
         )
         ax.add_patch(lightCircle)
 
     # Draws the light from the audience's perspective on the plt axes
     def draw2D(self, stageInfo: stage.StageDescriptor, ax: plt.Axes):
-        ax.fill()
+        middleOfStage = stageInfo.width / 2
+        LightConeBeamCentral = [middleOfStage + self.position, stageInfo.height]
+        LightConeBeamLeftUpper = [
+            LightConeBeamCentral[0] - c.LIGHT_SOURCE_RADIUS,
+            LightConeBeamCentral[1],
+        ]
+        LightConeBeamRightUpper = [
+            LightConeBeamCentral[0] + c.LIGHT_SOURCE_RADIUS,
+            LightConeBeamCentral[1],
+        ]
+        spreadMult = math.sin(math.radians(self.spread / 2))
+        # TODO: add the spread
+        LightConeBeamLeftLower = [
+            LightConeBeamCentral[0] - c.LIGHT_SOURCE_RADIUS,
+            0,
+        ]
+        LightConeBeamRightLower = [
+            LightConeBeamCentral[0] + c.LIGHT_SOURCE_RADIUS,
+            0,
+        ]
+
+        points = [
+            LightConeBeamLeftUpper,
+            LightConeBeamRightUpper,
+            LightConeBeamRightLower,
+            LightConeBeamLeftLower,
+        ]
+        xPoints = [pos[0] for pos in points]
+        yPoints = [pos[1] for pos in points]
+        colours = [
+            self.colour.getColourIndex(0),
+            self.colour.getColourIndex(0),
+            self.colour.getColourIndex(1),
+            self.colour.getColourIndex(1),
+        ]
+        # TODO: make gradients nice
+        ax.fill(xPoints, yPoints, colours[0], alpha=self.intensity / 11)
         pass
 
 
@@ -78,9 +119,9 @@ class LightGroup:
                 lightGroup.drawTopDown(stageInfo, ax)
 
     # Iterates through all and draws them from the audience's perspective
-    def draw2D(self, ax: plt.Axes):
+    def draw2D(self, stageInfo: stage.StageDescriptor, ax: plt.Axes):
         for light in self.lights:
-            light.draw2D(ax)
+            light.draw2D(stageInfo, ax)
         for lightGroup in self.lightGroups:
             if lightGroup != self:
-                lightGroup.draw2D(ax)
+                lightGroup.draw2D(stageInfo, ax)
