@@ -35,8 +35,8 @@ class Colour:
 storedCmaps = {}
 
 
-def getOrMakeCMAP(a, b):
-    key = "light_" + a + "_" + b
+def getOrMakeCMAP(a, b, name=None):
+    key = name if name else "light_" + a + "_" + b
     if key in storedCmaps:
         return storedCmaps[key]
     else:

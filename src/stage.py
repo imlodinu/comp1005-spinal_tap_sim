@@ -55,4 +55,4 @@ class StageDraw:
             interpolation="nearest",
             alpha=1,
             origin="lower",
-        )
+        ).set_zorder(-1)

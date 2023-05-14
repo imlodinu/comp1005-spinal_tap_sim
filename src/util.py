@@ -12,3 +12,9 @@
 # ripJoin(A, B, C) = [1, 4, 7, 2, 5, 8, 3, 6, 9]
 def ripJoin(*args):
     return [item for sublist in zip(*args) for item in sublist]
+
+
+import math
+
+RAD_TO_DEG = 180 / math.pi
+DEG_TO_RAD = 1 / RAD_TO_DEG
