@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm  # Used to make a nice scrolling thing in the terminal
 
 import sys  # Included with python
-import os  # Included with python
 
 import director
 import util
