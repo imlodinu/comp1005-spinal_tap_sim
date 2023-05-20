@@ -34,6 +34,7 @@ class Colour:
             return self.rawColour
 
 
+# Caching so that we don't have to remake a lot of them
 storedCmaps = {}
 
 

@@ -27,7 +27,7 @@ class SmokeMachine:
         self.intensity = intensity
 
 
-# New volume class with phi
+# Volume class with phi
 class Volume:
     stageInfo: stg.StageDescriptor  # Stage descriptor
 
@@ -40,6 +40,8 @@ class Volume:
 
     bound: pf.Box  # Boundary of the volume
     smoke: pf.CenteredGrid  # Smoke density
+    # Staggered grid is a grid where the values are stored at the edges of the grid
+    # Which means it does moore neighbour interpolation
     velocity: pf.StaggeredGrid  # Velocity field
 
     # Constructor for a `Volume`
