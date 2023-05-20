@@ -150,14 +150,18 @@ class Choreography:
             ]
             smokeMachineVolumeObj.step()
 
+        # We use buffering so that we can alter the speed of the choreography
         if self.buffering > 0:
             self.buffering -= 1
+        # If we still need to buffer, stop updating
         if self.buffering > 0:
             return
 
         thisStep = self.steps[self.stepFrame]
         for step in thisStep:
             t = step[0]
+            # ideally there'd be a switch statement but python doesn't have one
+            # (it has match but it doesn't work nicely)
             if t == "light":
                 name = step[1]
                 lightObj = self.objectBins["lights"][name]
@@ -268,6 +272,8 @@ class Choreography:
             else:
                 print("Unknown step type: " + t)
 
+        # Animations are looping, and will be reset to the first frame after it's done
+        # with the sequence
         self.stepFrame = (self.stepFrame + 1) % len(self.steps)
 
     # Cleans the stage for next frame
