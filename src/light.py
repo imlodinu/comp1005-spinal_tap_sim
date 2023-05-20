@@ -39,15 +39,15 @@ class Light:
     def drawTopDown(self, stageInfo: stage.StageDescriptor, ax: plt.Axes):
         # Position is from the middle of the stage
         middleOfStage = stageInfo.width / 2
-        lightCirclePosition = [middleOfStage + self.position, c.LIGHT_SOURCE_RADIUS]
+        lightCirclePosition = [middleOfStage + self.position, c.LIGHT_SOURCE_RADIUS]  # type: ignore
         lightCircleRadius = c.LIGHT_SOURCE_RADIUS
         # Colour can be a list of colours, or a singular colour
-        lightColour = self.colour.getColourIndex(0)
+        lightColour = self.colour.getColourIndex(0)  # type: ignore
         lightCircle = pltpatches.Circle(
             lightCirclePosition,
             lightCircleRadius,
             color=lightColour,
-            alpha=self.intensity / 11,
+            alpha=self.intensity / 11,  # type: ignore
             linewidth=0,
         )
         ax.add_patch(lightCircle)
@@ -65,16 +65,15 @@ class Light:
             LightConeBeamCentral[1],
         ]
 
-        # TODO: Direction for lights
-        spread = (stageInfo.height + c.LIGHT_SOURCE_RADIUS) * math.sin(
-            math.radians(self.spread / 2)
-        )
+        length = stageInfo.height + c.LIGHT_SOURCE_RADIUS
+        spread = length * math.sin(math.radians(self.spread / 2))  # type: ignore
+        shift = length * (math.cos(math.radians(self.direction)))  # type: ignore
         LightConeBeamLeftLower = [
-            LightConeBeamCentral[0] - spread / 2,
+            LightConeBeamCentral[0] + shift - spread / 2,
             0,
         ]
         LightConeBeamRightLower = [
-            LightConeBeamCentral[0] + spread / 2,
+            LightConeBeamCentral[0] + shift + spread / 2,
             0,
         ]
         points = [
@@ -86,20 +85,20 @@ class Light:
 
         # Uses a function to create or get a gradient from these two colours
         cmap = col.getOrMakeCMAP(
-            self.colour.getColourIndex(0), self.colour.getColourIndex(1)
+            self.colour.getColourIndex(0), self.colour.getColourIndex(1)  # type: ignore
         )
         # Creates topdown gradient
         gradient = np.atleast_2d(np.linspace(0, 1, stageInfo.height)).T
-        poly = pltpatches.Polygon(points, facecolor="none", edgecolor="none")
+        poly = pltpatches.Polygon(points, facecolor="none", edgecolor="none")  # type: ignore
         im = ax.imshow(
             gradient,
             cmap=cmap,
             extent=[0, stageInfo.width, 0, stageInfo.height],
             interpolation="nearest",
-            alpha=self.intensity / 11,
+            alpha=self.intensity / 11,  # type: ignore
         )
         ax.add_patch(poly)
-        im.set_clip_path(poly)
+        im.set_clip_path(poly)  # type: ignore
 
 
 # Collection of lights and/or light groups

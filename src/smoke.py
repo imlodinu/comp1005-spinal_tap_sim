@@ -5,295 +5,128 @@
 
 # dependencies
 import numpy as np
-from functools import reduce
+from matplotlib import pyplot as plt
+import phi.flow as pf
+from typing import Tuple
 
-# import stage as stg
 import colour as col
-import util as u
 import constants as c
 import stage as stg
-
-import math
 
 
 # A definition for a smoke machine
 class SmokeMachine:
     position = None  # [x, y] position of the smoke machine
-    direction = None  # 0-360 degrees, direction the smoke machine is facing
+    # direction = None  # [x, y] direction the smoke machine is facing
     intensity = None  # 0-11, intensity of the smoke machine
 
-    def __init__(self, position, direction, intensity):
+    def __init__(self, position, intensity):
         self.position = position
-        self.direction = direction
+        # self.direction = direction
         self.intensity = intensity
 
 
-transparencyCMAP = col.getOrMakeCMAP((1, 1, 1, 0), (1, 1, 1, 1), "smokeTransparency")
-
-
-# Converts from a 2D coordinate to a 1D coordinate in the arrays
-def _coordToIndex(stageInfo: stg.StageDescriptor, x, y):
-    return y * stageInfo.width + x
-
-
-# Converts from a 1D coordinate to a 2D coordinate in the arrays
-def _indexToCoord(stageInfo: stg.StageDescriptor, i):
-    return (i % stageInfo.width, i // stageInfo.width)
-
-
-# Boundary operations
-def _setBoundary(
-    boundaryCondition: int,
-    values: np.ndarray[np.float64],
-    stageInfo: stg.StageDescriptor,
-):
-    for index in range(1, stageInfo.width - 1):
-        # Balances x
-        values[_coordToIndex(0, index)] = (
-            -1 if boundaryCondition == 1 else 1
-        ) * values[_coordToIndex(1, index)]
-        values[_coordToIndex(stageInfo.width - 1, index)] = (
-            -1 if boundaryCondition == 1 else 1
-        ) * values[_coordToIndex(stageInfo.width - 2, index)]
-        # Balances y
-        values[_coordToIndex(index, 0)] = (
-            -1 if boundaryCondition == 2 else 1
-        ) * values[_coordToIndex(index, 1)]
-        values[_coordToIndex(index, stageInfo.height - 1)] = (
-            -1 if boundaryCondition == 2 else 1
-        ) * values[_coordToIndex(index, stageInfo.height - 2)]
-
-    # Balances corners
-    values[_coordToIndex(0, 0)] = 0.5 * (
-        values[_coordToIndex(1, 0)] + values[_coordToIndex(0, 1)]
-    )
-    values[_coordToIndex(0, stageInfo.height - 1)] = 0.5 * (
-        values[_coordToIndex(1, stageInfo.height - 1)]
-        + values[_coordToIndex(0, stageInfo.height - 2)]
-    )
-    values[_coordToIndex(stageInfo.width - 1, 0)] = 0.5 * (
-        values[_coordToIndex(stageInfo.width - 2, 0)]
-        + values[_coordToIndex(stageInfo.width - 1, 1)]
-    )
-    values[_coordToIndex(stageInfo.width - 1, stageInfo.height - 1)] = 0.5 * (
-        values[_coordToIndex(stageInfo.width - 2, stageInfo.height - 1)]
-        + values[_coordToIndex(stageInfo.width - 1, stageInfo.height - 2)]
-    )
-
-
-# Function for volume advection and diffusion
-def _linearSolver(
-    boundaryCondition: int,
-    values: np.ndarray[np.float64],
-    previousValues: np.ndarray[np.float64],
-    a: float,
-    c: float,
-    stageInfo: stg.StageDescriptor,
-    iterationAmount: int,
-):
-    reciprocalC = 1 / c
-    # Gauss-Seidel relaxation is iterative
-    for index in range(iterationAmount):
-        # For each cell (we ignore the edges)
-        for y in range(1, stageInfo.height - 1):
-            for x in range(1, stageInfo.width - 1):
-                index = _coordToIndex(stageInfo, x, y)
-
-                # Van-Neumann neighbourhoods
-                # Get the values of the cell and its neighbours
-                left = values[index - 1]
-                right = values[index + 1]
-                top = values[index - stageInfo.width]
-                bottom = values[index + stageInfo.width]
-
-                # Calculate the new value of the cell
-                values[index] = (
-                    previousValues[index]
-                    + a * (left + right + top + bottom) * reciprocalC
-                )
-        _setBoundary(boundaryCondition, values, stageInfo)
-
-
-# Function for volume diffusion
-def _diffuse(
-    boundaryCondition: int,
-    stageInfo: stg.StageDescriptor,
-    iterationAmount: int,
-    values: np.ndarray[np.float64],
-    beforeValues: np.ndarray[np.float64],
-    diffusion: float,
-    deltaTime: float,
-):
-    # Scale the amount we diffuse by the delta time and size
-    diffuseAmount = diffusion * deltaTime * stageInfo.width * stageInfo.height
-    _linearSolver(
-        boundaryCondition,
-        values,
-        beforeValues,
-        diffuseAmount,
-        deltaTime,
-        stageInfo,
-        iterationAmount,
-    )
-
-
-# Function for volume projection (mass conservation)
-def _project(
-    stageInfo: stg.StageDescriptor,
-    iterationAmount: int,
-    xValues: np.ndarray[np.float64],
-    yValues: np.ndarray[np.float64],
-    pressureValues: np.ndarray[np.float64],
-    divergentValues: np.ndarray[np.float64],
-):
-    for y in range(1, stageInfo.height - 1):
-        for x in range(1, stageInfo.width - 1):
-            index = _coordToIndex(stageInfo, x, y)
-            # Calculate the divergence of the cell
-            divergentValues[index] = (
-                -0.5
-                * (
-                    xValues[index + 1]
-                    - xValues[index - 1]
-                    + yValues[index + stageInfo.width]
-                    - yValues[index - stageInfo.width]
-                )
-                / stageInfo.width
-            )
-            # Set the pressure of the cell to 0
-            pressureValues[index] = 0
-
-    # Set the boundaries of the divergence and pressure
-    _setBoundary(0, divergentValues, stageInfo)
-    _setBoundary(0, pressureValues, stageInfo)
-    _linearSolver(0, pressureValues, divergentValues, 1, 6, stageInfo, iterationAmount)
-
-    # For each cell
-    for y in range(1, stageInfo.height - 1):
-        for x in range(1, stageInfo.width - 1):
-            index = _coordToIndex(stageInfo, x, y)
-            # Calculate the pressure gradient
-            xValues[index] -= (
-                0.5
-                * stageInfo.width
-                * (pressureValues[index + 1] - pressureValues[index - 1])
-            )
-            yValues[index] -= (
-                0.5
-                * stageInfo.width
-                * (
-                    pressureValues[index + stageInfo.width]
-                    - pressureValues[index - stageInfo.width]
-                )
-            )
-
-    # Set the boundaries of the x and y velocities
-    _setBoundary(1, xValues, stageInfo)
-    _setBoundary(2, yValues, stageInfo)
-
-
-# Function for volume advection
-# Advection is like diffusion but actually moves the smoke
-#   semi-Lagrangian method
-def _advect(
-    boundaryCondition: int,
-    densities: np.ndarray[np.float64],
-    previousDensities: np.ndarray[np.float64],
-    xVelocities: np.ndarray[np.float64],
-    yVelocities: np.ndarray[np.float64],
-    stageInfo: stg.StageDescriptor,
-    deltaTime: float,
-):
-    deltaX = deltaTime * stageInfo.width
-    deltaY = deltaTime * stageInfo.height
-
-    for x in range(1, stageInfo.width - 1):
-        for y in range(1, stageInfo.height - 1):
-            index = _coordToIndex(stageInfo, x, y)
-
-            # Calculate the position of the cell
-            xPosition = x - deltaX * xVelocities[index]
-            yPosition = y - deltaY * yVelocities[index]
-
-            # Clamp the position to the stage
-            if xPosition < 0.5:
-                xPosition = 0.5
-            elif xPosition > stageInfo.width - 1.5:
-                xPosition = stageInfo.width - 1.5
-            if yPosition < 0.5:
-                yPosition = 0.5
-            elif yPosition > stageInfo.height - 1.5:
-                yPosition = stageInfo.height - 1.5
-
-            # Get the position of the cell
-            x0 = math.floor(xPosition)
-            x1 = x0 + 1
-            y0 = math.floor(yPosition)
-            y1 = y0 + 1
-
-            # Get the interpolation factors
-            s1 = xPosition - x0
-            s0 = 1 - s1
-            t1 = yPosition - y0
-            t0 = 1 - t1
-
-            # Interpolate the density
-            densities[index] = s0 * (
-                t0 * previousDensities[_coordToIndex(stageInfo, x0, y0)]
-                + t1 * previousDensities[_coordToIndex(stageInfo, x0, y1)]
-            ) + s1 * (
-                t0 * previousDensities[_coordToIndex(stageInfo, x1, y0)]
-                + t1 * previousDensities[_coordToIndex(stageInfo, x1, y1)]
-            )
-    _setBoundary(boundaryCondition, densities, stageInfo)
-
-
-# Simulates fluid
+# New volume class with phi
 class Volume:
-    stageInfo = None  # StageDescriptor object
+    stageInfo: stg.StageDescriptor  # Stage descriptor
 
-    nCells = 0  # Number of cells in the volume
+    x: int
+    y: int
 
-    deltaTime = 0.1  # Time between simulations
-    viscosity = 0.0  # Viscosity of the smoke
-    diffusion = 0.0  # Diffusion of the smoke
+    buouyancy_factor = 1.0
+    time_step = 1.0
+    decay = 0.0
 
-    xN = None  # List of x velocities of the cells
-    yN = None  # List of y velocities of the cells
-    dN = None  # List of smoke concentrations of the cells
-
-    xB = None  # List of previous x velocities of the cells
-    yB = None  # List of previous y velocities of the cells
-    dB = None  # List of previous smoke concentrations of the cells
+    bound: pf.Box  # Boundary of the volume
+    smoke: pf.CenteredGrid  # Smoke density
+    velocity: pf.StaggeredGrid  # Velocity field
 
     # Constructor for a `Volume`
-    def __init__(self, stageInfo, deltaTime, viscosity, diffusion):
+    def __init__(self, stageInfo: stg.StageDescriptor):
         self.stageInfo = stageInfo
-        self.nCells = stageInfo.width * stageInfo.height
+        self.bound = pf.Box(x=stageInfo.width, y=stageInfo.height)
+        self.x, self.y = int(stageInfo.width * c.SMOKE_SIM_RESOLUTION), int(
+            stageInfo.height * c.SMOKE_SIM_RESOLUTION
+        )
 
-        self.deltaTime = deltaTime
-        self.viscosity = viscosity
-        self.diffusion = diffusion
+        self.smoke = pf.CenteredGrid(
+            0,
+            pf.extrapolation.BOUNDARY,
+            x=self.x,
+            y=self.y,
+            bounds=self.bound,
+        )
+        self.velocity = pf.StaggeredGrid(
+            0,
+            pf.extrapolation.ZERO,
+            x=self.x,
+            y=self.y,
+            bounds=self.bound,
+        )
 
-        self.yN = np.zeros(self.nCells)
-        self.xN = np.zeros(self.nCells)
-        self.dN = np.zeros(self.nCells)
+    def step(self, inflow: pf.field.SampledField):
+        smoke = (
+            pf.advect.mac_cormack(self.smoke, self.velocity, dt=self.time_step) + inflow
+        )
+        smoke = smoke * (1 - self.decay)
+        buoyancy_force = (smoke * (0, 4)) @ (self.velocity)
+        velocity = (
+            pf.advect.semi_lagrangian(self.velocity, self.velocity, dt=self.time_step)
+            + buoyancy_force
+        )
+        velocity, _ = pf.fluid.make_incompressible(velocity)
+        self.smoke, self.velocity = smoke, velocity  # type: ignore
 
-        self.yB = np.zeros(self.nCells)
-        self.xB = np.zeros(self.nCells)
-        self.dB = np.zeros(self.nCells)
 
-    # Adds smoke to the volume
-    def addSmokeConcentration(self, pX: int, pY: int, concentration: float):
-        index = _coordToIndex(pX, pY)
-        self.dN[index] += concentration
+# SmokeMachine Volume
+class SmokeMachineVolume:
+    stageInfo: stg.StageDescriptor
+    volume: Volume  # Volume object
+    machines = []  # List of SmokeMachine objects
+    naturalDecay = 0.01
+    smokeColour: Tuple[float, float, float] = (1, 1, 1)
 
-    # Adds velocity to the volume
-    def addVelocity(self, pX: int, pY: int, vX: float, vY: float):
-        index = _coordToIndex(pX, pY)
-        self.xN[index] += vX
-        self.yN[index] += vY
+    # Constructor for a `SmokeMachineVolume`
+    def __init__(self, stageInfo, col: Tuple[float, float, float] = (1, 1, 1)):
+        self.stageInfo = stageInfo
+        self.volume = Volume(stageInfo)
+        self.smokeColour = col
+
+    # Adds a `SmokeMachine` to the volume
+    def addMachine(self, machine: SmokeMachine):
+        self.machines.append(machine)
 
     # Step simulation
-    def step():
+    def step(self):
+        # Objects
+        inflow = None
+        for machine in self.machines:
+            # Add to list
+            addTo = (machine.intensity / 11) * pf.CenteredGrid(
+                pf.Sphere(x=machine.position[0], y=machine.position[1], radius=c.SMOKE_MACHINE_RADIUS),  # type: ignore
+                pf.extrapolation.BOUNDARY,
+                x=self.volume.x,
+                y=self.volume.y,
+                bounds=self.volume.bound,
+            )
+            if inflow == None:
+                inflow = addTo
+            else:
+                inflow += addTo
+        # Create inflow
+        self.volume.step(inflow)  # type: ignore
         pass
+
+    # Draws the volume
+    def draw(self, ax: plt.Axes):
+        vals = np.sum(self.volume.smoke.values.numpy("y,x,inflow_loc")[...], axis=2)
+        cmap = col.getOrMakeCMAP(
+            (*self.smokeColour, 0), (*self.smokeColour, 1), "smokeTransparency"
+        )
+        ax.imshow(
+            vals,
+            cmap=cmap,
+            interpolation="bicubic",
+            origin="lower",
+            extent=[0, self.stageInfo.width, 0, self.stageInfo.height],
+        )

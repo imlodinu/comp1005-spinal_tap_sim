@@ -7,10 +7,10 @@ import matplotlib.colors as colors
 
 
 class Colour:
-    rawColour = None  # Raw colour, can be a string, or a list of two strings
+    rawColour: str | list[str]  # Raw colour, can be a string, or a list of two strings
 
     # Constructor for a `Colour`
-    def __init__(self, rawColour="white"):
+    def __init__(self, rawColour: str | list[str] = "white"):
         self.rawColour = rawColour
 
     # checks to see if it's a multiple colour colour

@@ -5,30 +5,50 @@
 # the stage in the scene.
 
 import matplotlib.pyplot as plt
+from skimage.transform import resize
+import numpy as np
+
+# included with matplotlib
+from PIL import Image
 
 import constants as c
 import colour as col
 
 
 class StageDescriptor:
-    width = None  # Width of the stage
-    height = None  # Height of the stage
+    width = 0  # Width of the stage
+    height = 0  # Height of the stage
+    is_file = False
     backdrop = None  # Backdrop image (path to image prefixed with 'file://', colour, or None for no backdrop)
+    source = None  # Storage for backdrop data
 
     # Constructor for a `StageDescriptor`
-    def __init__(self, width=0.0, height=0.0, backdrop=None):
+    def __init__(self, width=0, height=0, backdrop=None):
         self.width = width
         self.height = height
         self.backdrop = backdrop
+        if isinstance(backdrop, str) and backdrop.startswith("file://"):
+            self.addBackdropFromFile(backdrop[7:])
+
+    # Adds a backdrop from a file
+    def addBackdropFromFile(self, name: str):
+        self.backdrop = "file://" + name
+        self.is_file = True
+        self.source = np.array(Image.open(name))
+
+
+def stageFromFile(name: str):
+    # Uses PIL to open the image, then converts it to a numpy array
+    return StageDescriptor(0, 0, np.array(Image.open(name)))
 
 
 defaultStageCMAP = col.getOrMakeCMAP("black", "black")
 
 
 class StageDraw:
-    topAx = None  # Top down axis
-    sideAx = None  # Side on axis
-    descriptor = None  # Stage descriptor
+    topAx: plt.Axes  # Top down axis
+    sideAx: plt.Axes  # Side on axis
+    descriptor: StageDescriptor  # Stage descriptor
 
     # Constructor for a `StageDraw`
     def __init__(self, descriptor):
@@ -49,10 +69,63 @@ class StageDraw:
 
         # Done to keep the audience view the same
         _ = self.topAx.imshow(
-            [[[0, 0, 0, 0]]],
+            [[[0]]],
             cmap=defaultStageCMAP,
             extent=[0, descriptor.width, 0, c.LIGHT_SOURCE_DIAMETER],
             interpolation="nearest",
             alpha=1,
             origin="lower",
         ).set_zorder(-1)
+
+        # Draws the stage's backdrop
+
+    def draw(self):
+        if self.descriptor.backdrop is None:
+            return
+        if self.descriptor.is_file and self.descriptor.source is not None:
+            self.sideAx.imshow(
+                self.descriptor.source,
+                extent=[0, self.descriptor.width, 0, self.descriptor.height],
+                interpolation="nearest",
+                alpha=1,
+                origin="upper",
+            )
+            top = self.descriptor.source[
+                0 : int(c.LIGHT_SOURCE_DIAMETER),
+                0 : self.descriptor.source.shape[1],
+            ]
+            self.topAx.imshow(
+                top,
+                extent=[0, self.descriptor.width, 0, c.LIGHT_SOURCE_DIAMETER],
+                interpolation="nearest",
+                alpha=1,
+                origin="upper",
+            )
+        else:
+            cmap = col.getOrMakeCMAP(
+                self.descriptor.backdrop,
+                self.descriptor.backdrop,
+                self.descriptor.backdrop,
+            )
+            self.sideAx.imshow(
+                [[[0]]],
+                cmap=cmap,
+                extent=[0, self.descriptor.width, 0, self.descriptor.height],
+                interpolation="nearest",
+                alpha=1,
+                origin="upper",
+            ).set_zorder(-1)
+            self.topAx.imshow(
+                [[[0]]],
+                cmap=cmap,
+                extent=[0, self.descriptor.width, 0, c.LIGHT_SOURCE_DIAMETER],
+                interpolation="nearest",
+                alpha=1,
+                origin="lower",
+            )
+
+    def clean(self):
+        self.topAx.patches.clear()
+        self.topAx.images.clear()
+        self.sideAx.patches.clear()
+        self.sideAx.images.clear()
