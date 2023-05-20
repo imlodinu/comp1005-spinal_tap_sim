@@ -3,15 +3,15 @@
 #
 # Description: This file contains the prop related classes
 
-# dependencies
+# Dependencies
 import numpy as np
 from matplotlib import pyplot as plt
 from skimage.transform import resize
+from PIL import Image  # Included with matplotlib
 
-# included with matplotlib
-from PIL import Image
+from typing import Tuple  # Included with python
 
-from typing import Tuple
+import util
 
 
 class Prop:
@@ -49,4 +49,4 @@ class Prop:
 
 def propFromFile(name: str):
     # Uses PIL to open the image, then converts it to a numpy array
-    return Prop(np.array(Image.open(name)), (0, 0), 1.0)
+    return Prop(np.array(Image.open(util.getPath(name))), (0, 0), 1.0)

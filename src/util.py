@@ -1,20 +1,12 @@
 # util.py
 # Lodinu Kalugalage
 #
-# Description: This file contains the utility functions used throughout the program.
+# Description: This file contains the util functions used throughout the program.
+
+import pathlib  # Included with python
 
 
-# takes in lists, and joins them
-# Example:
-# A = [1, 2, 3]
-# B = [4, 5, 6]
-# C = [7, 8, 9]
-# ripJoin(A, B, C) = [1, 4, 7, 2, 5, 8, 3, 6, 9]
-def ripJoin(*args):
-    return [item for sublist in zip(*args) for item in sublist]
-
-
-import math
-
-RAD_TO_DEG = 180 / math.pi
-DEG_TO_RAD = 1 / RAD_TO_DEG
+# If the program is called from different directories, then the relative path will be different
+# This function gets the absolute path of a file relative to this file
+def getPath(name: str):
+    return str((pathlib.Path(__file__).parent / name).absolute())

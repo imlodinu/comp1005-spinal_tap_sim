@@ -7,7 +7,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import phi.flow as pf
-from typing import Tuple
+
+from typing import Tuple  # Included with python
 
 import colour as col
 import constants as c
@@ -65,6 +66,8 @@ class Volume:
         )
 
     def step(self, inflow: pf.field.SampledField):
+        # Complicated phsics stuff simplified with phiflow
+        # (its faster too)
         smoke = (
             pf.advect.mac_cormack(self.smoke, self.velocity, dt=self.time_step) + inflow
         )

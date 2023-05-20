@@ -3,6 +3,8 @@
 #
 # Description: This file contains the Colour related class which is used to represent
 # a colour in the scene.
+
+# Dependencies
 import matplotlib.colors as colors
 
 

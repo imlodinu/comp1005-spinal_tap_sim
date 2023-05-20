@@ -3,13 +3,15 @@
 #
 # Description: This file contains the director class which is used to direct the scene.
 
-import json
+# Dependencies
+import json  # Included with python
 
 import light
 import prop
 import smoke
 import stage as stg
 import colour
+import util
 
 
 class Choreography:
@@ -41,7 +43,7 @@ class Choreography:
     # Loads a choreography from a file
     @staticmethod
     def loadFromFile(filename: str):
-        with open(filename, "r") as f:
+        with open(util.getPath(filename), "r") as f:
             return Choreography(f.read())
 
     # Parses the json

@@ -4,18 +4,16 @@
 # Description: This file contains the Light related class which is used to represent
 # a light source in the scene.
 
-# Dependencies on matplotlib
+# Dependencies
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import matplotlib.patches as pltpatches
 import numpy as np
 
 import stage
 import colour as col
 import constants as c
-import util as u
 
-import math
+import math  # Python included
 
 
 class Light:

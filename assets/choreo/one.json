@@ -1,5 +1,5 @@
 {
-    "backdrop": "file://assets/backdrops/main.png",
+    "backdrop": "file://../assets/backdrops/main.png",
     "width": 500,
     "height": 400,
     "objects": {
@@ -25,7 +25,7 @@
         },
         "guitar": {
             "type": "prop",
-            "img": "assets/props/guitar.png",
+            "img": "../assets/props/guitar.png",
             "scale": 5,
             "position": [210, 5]
         },

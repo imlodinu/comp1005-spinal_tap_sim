@@ -5,14 +5,12 @@
 # the stage in the scene.
 
 import matplotlib.pyplot as plt
-from skimage.transform import resize
 import numpy as np
-
-# included with matplotlib
-from PIL import Image
+from PIL import Image  # Included with matplotlib
 
 import constants as c
 import colour as col
+import util
 
 
 class StageDescriptor:
@@ -34,12 +32,12 @@ class StageDescriptor:
     def addBackdropFromFile(self, name: str):
         self.backdrop = "file://" + name
         self.is_file = True
-        self.source = np.array(Image.open(name))
+        self.source = np.array(Image.open(util.getPath(name)))
 
 
 def stageFromFile(name: str):
     # Uses PIL to open the image, then converts it to a numpy array
-    return StageDescriptor(0, 0, np.array(Image.open(name)))
+    return StageDescriptor(0, 0, np.array(Image.open(util.getPath(name))))
 
 
 defaultStageCMAP = col.getOrMakeCMAP("black", "black")
@@ -82,6 +80,7 @@ class StageDraw:
     def draw(self):
         if self.descriptor.backdrop is None:
             return
+        # Draws the backdrop
         if self.descriptor.is_file and self.descriptor.source is not None:
             self.sideAx.imshow(
                 self.descriptor.source,
