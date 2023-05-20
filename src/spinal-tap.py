@@ -11,14 +11,17 @@ import util
 
 def main():
     # Loading the information from assets/
-    choreo = director.Choreography.loadFromFile(
-        util.getPath("../assets/choreo/one.json")
+    choreoFile = (
+        "../assets/choreo/one.json"
+        if not len(sys.argv) > 1 or sys.argv[1] == "_"
+        else sys.argv[1]
     )
+    choreo = director.Choreography.loadFromFile(util.getPath(choreoFile))
     choreo.parse()
     plt.suptitle("STAGE VIEW", fontsize="18")
 
     # Accepting a command line argument for the number of simulations to run or default to 100
-    simCount = 100 if not len(sys.argv) > 1 else int(sys.argv[1])
+    simCount = 100 if not len(sys.argv) > 2 else int(sys.argv[2])
     for i in tqdm(range(simCount)):
         choreo.step()
         choreo.draw()
