@@ -13,7 +13,7 @@
         },
         "light_two": {
             "type": "light",
-            "colour": ["green", "red"],
+            "colour": "red",
             "position": 200,
             "direction": 140,
             "intensity": 5,
