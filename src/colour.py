@@ -7,12 +7,14 @@
 # Dependencies
 import matplotlib.colors as colors
 
+from typing import List  # Included with python
+
 
 class Colour:
-    rawColour: str | list[str]  # Raw colour, can be a string, or a list of two strings
+    rawColour: str | List[str]  # Raw colour, can be a string, or a list of two strings
 
     # Constructor for a `Colour`
-    def __init__(self, rawColour: str | list[str] = "white"):
+    def __init__(self, rawColour: str | List[str] = "white"):
         self.rawColour = rawColour
 
     # checks to see if it's a multiple colour colour

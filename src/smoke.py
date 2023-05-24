@@ -34,8 +34,7 @@ class Volume:
     x: int
     y: int
 
-    buouyancy_factor = 1.0
-    time_step = 1.0
+    timeStep = 1.0
     decay = 0.0
 
     bound: pf.Box  # Boundary of the volume
@@ -71,12 +70,12 @@ class Volume:
         # Complicated phsics stuff simplified with phiflow
         # (its faster too)
         smoke = (
-            pf.advect.mac_cormack(self.smoke, self.velocity, dt=self.time_step) + inflow
+            pf.advect.mac_cormack(self.smoke, self.velocity, dt=self.timeStep) + inflow
         )
         smoke = smoke * (1 - self.decay)
         buoyancy_force = (smoke * (0, 4)) @ (self.velocity)
         velocity = (
-            pf.advect.semi_lagrangian(self.velocity, self.velocity, dt=self.time_step)
+            pf.advect.semi_lagrangian(self.velocity, self.velocity, dt=self.timeStep)
             + buoyancy_force
         )
         velocity, _ = pf.fluid.make_incompressible(velocity)
@@ -88,7 +87,6 @@ class SmokeMachineVolume:
     stageInfo: stg.StageDescriptor
     volume: Volume  # Volume object
     machines = []  # List of SmokeMachine objects
-    naturalDecay = 0.01
     smokeColour: Tuple[float, float, float] = (1, 1, 1)
 
     # Constructor for a `SmokeMachineVolume`

@@ -16,7 +16,7 @@ import util
 class StageDescriptor:
     width = 0  # Width of the stage
     height = 0  # Height of the stage
-    is_file = False
+    isFile = False
     backdrop = None  # Backdrop image (path to image prefixed with 'file://', colour, or None for no backdrop)
     source = None  # Storage for backdrop data
 
@@ -31,7 +31,7 @@ class StageDescriptor:
     # Adds a backdrop from a file
     def addBackdropFromFile(self, name: str):
         self.backdrop = "file://" + name
-        self.is_file = True
+        self.isFile = True
         self.source = np.array(Image.open(util.getPath(name)))
 
 
@@ -75,13 +75,12 @@ class StageDraw:
             origin="lower",
         ).set_zorder(-1)
 
-        # Draws the stage's backdrop
-
+    # Draws the stage's backdrop
     def draw(self):
         if self.descriptor.backdrop is None:
             return
         # Draws the backdrop
-        if self.descriptor.is_file and self.descriptor.source is not None:
+        if self.descriptor.isFile and self.descriptor.source is not None:
             self.sideAx.imshow(
                 self.descriptor.source,
                 extent=[0, self.descriptor.width, 0, self.descriptor.height],
@@ -123,6 +122,7 @@ class StageDraw:
                 origin="lower",
             )
 
+    # Clears the stage
     def clean(self):
         self.topAx.patches.clear()
         self.topAx.images.clear()

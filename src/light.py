@@ -17,11 +17,11 @@ import math  # Python included
 
 
 class Light:
-    colour = None  # Colour
-    position = None  # a 1D representation of the light's position, as it is fixed on the ceiling in a 2D
-    direction = None  # 0-180, 0 is facing right, 90 is facing down, 180 is facing left
-    intensity = None  # 0-11, 0 is off, 11 is brightest
-    spread = None  # 0-120, cone of light spread, 0 is a laser, 120 is a flood light
+    colour: col.Colour  # Colour
+    position: float  # a 1D representation of the light's position, as it is fixed on the ceiling in a 2D
+    direction: int  # 0-180, 0 is facing right, 90 is facing down, 180 is facing left
+    intensity: float  # 0-11, 0 is off, 11 is brightest
+    spread: int  # 0-120, cone of light spread, 0 is a laser, 120 is a flood light
 
     # Constructor for a `Light`
     def __init__(
