@@ -90,10 +90,68 @@ The prop system was also simple to create. Using scikit-image and matplotlib, I 
 #figure(image("assets/uml_prop.png", width: 22.5%), caption: [StageDescriptor, Prop, UML diagrams])
 == Multiple backdrops
 The first step in creating backdrops was to allow the `StageDraw` class to load a backdrop. I added a `backdrop` property to the class, which can be a `Colour`, `None`, or a `str` (which is the path to a .png file). Then in the draw method of the class, I draw the backdrop based on if it has loaded an image or not.
+== Choreography System
+With my experience of animation, I decided to create a system with allows the user to edit how the simulation would run. I was going to create a markup language in the vein of yaml but more programatic, but realised what I wanted could be done in json relatively easily using the inbuilt python `json` module. I created a class called `Choreography` in src/director.py, which aggregates the other classes created before. It can load a json file, and then run the simulation based on the properties in the file.
+== Arbitrary loading of choreography files
+This code was also relatively easy to implement, as it is just a ternary checking the length of the command line arguments and choosing between a default file, a file specified by the user, or a file specified by the user with a number of simulation cycles appended to it.
+== Full UML Diagram
+#figure([#image("assets/uml_full.png", fit: "stretch", width: 115%)], caption: [Entire UML Diagram])
 = Showcase
-= Conclusion
-= Future Work
-#lorem(20)
+== One.json
+This is the first default simulation used by the program. To run it, run the following in the root directory of the project:
+```sh
+python3 src/spinal-tap.py
+```
+or alternatively and more verbosely:
+```sh
+python3 src/spinal-tap.py ../assets/choreo/one.json
+```
 
-#lorem(3)
+The code should output something similar to the following:
+#figure([#image("assets/tqdm_demo.png", fit: "stretch", width: 80%)], caption: [TQDM progress bar])
+This progress bar is created in `spinal-tap.py` to track the progress of the frames, and is created using the python `tqdm` library. After the progress bar is finished, a folder called \_simcache will be filled with the frames of the simulation. The following is a sample of that:
+
+#columns(2)[
+  #figure([#image("assets/one_first.png", fit: "contain", width: 49%)], caption: [First frame of the one.json choreography])
+  #colbreak()
+  #figure([#image("assets/one_last.png", fit: "contain", width: 49%)], caption: [Last frame of the one.json choreography])
+]
+As is visible, there is smoke covering the stage and the lights are moving around. The lights are moving back and forth as specified in the json file, and the smoke is moving upwards with buoyancy. The guitar prop is also moving around, as the position is displaced from the first frame to the last frame.
+
+== Two.json
+Similarly to the one.json choreography, the two.json choreography can be run with the following command:
+```sh
+python3 src/spinal-tap.py ../assets/choreo/two.json
+```
+
+#columns(2)[
+  #figure([#image("assets/two_first.png", fit: "contain", width: 49%)], caption: [First frame of the two.json choreography])
+  #colbreak()
+  #figure([#image("assets/two_last.png", fit: "contain", width: 49%)], caption: [Last frame of the two.json choreography])
+]
+Two.json is a modified version of one.json; It uses a different background which is visible in the stage view. It also has a different light pattern, using a different command to change the colours. The colour changing here demonstrates the `LightGroup`'s ability to manage multiple lights at once. The timing for all of objects is also different; there is a 3 frame gap inserted at the end instead of 1 frame.
+
+== Three.json
+Similar situation with three.json, run with the following command:
+```sh
+python3 src/spinal-tap.py ../assets/choreo/three.json
+```
+
+#columns(2)[
+  #figure([#image("assets/three_first.png", fit: "contain", width: 49%)], caption: [First frame of the three.json choreography])
+  #colbreak()
+  #figure([#image("assets/three_last.png", fit: "contain", width: 49%)], caption: [Last frame of the three.json choreography])
+]
+Three.json specifies a different sized stage, and a solid background colour. It also incorporates another prop, the drumkit. The drumkit is moving around the stage, as well as the guitar. The smoke is also put with different intensities (as you can see in Figure 10), so it swirls around differently than if it were all the same intensity.
+
+= Conclusion
+In regards to the task specification, I have implemented basically all of the features specified. However, I could not implement direction for smoke machines as the paper I used as a reference did not have an easy way to add a positional velocity as the simulation is with a grid and not particles. But other than that, overall my work is of a high quality (reasonably and not excessively documented, code separation in files, etc.) and I am happy with the result.
+= Future Work
+Some future work that could take place might be
+ - Adding a GUI (Graphical User Interface) to the program
+ - Adding a way to specify the direction of the smoke machines
+ - Using a faster simulation method or alternative simulation methods for smoke
+ - Adding a way to specify the colour of the smoke per smoke machine
+ - Using a faster framework than matplotlib for visualising the simulation (maybe pygame or raw OpenGL, Vulkan, etc.)
+ - Using a faster language (C/C++, Rust, Zig, etc.) to run the simulation
 #bibliography("refs.bib", style: "apa")

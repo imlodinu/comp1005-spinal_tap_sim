@@ -52,16 +52,16 @@ class StageDraw:
     def __init__(self, descriptor):
         self.descriptor = descriptor
 
-        fig = plt.figure(constrained_layout=True)
-        gs = fig.add_gridspec(
+        self.fig = plt.figure(constrained_layout=True)
+        gs = self.fig.add_gridspec(
             ncols=1,
             nrows=2,
             width_ratios=[1],
             height_ratios=[c.LIGHT_SOURCE_DIAMETER, descriptor.height],
         )
 
-        self.topAx = fig.add_subplot(gs[0], facecolor="black")
-        self.sideAx = fig.add_subplot(gs[1], facecolor="black")
+        self.topAx = self.fig.add_subplot(gs[0], facecolor="black")
+        self.sideAx = self.fig.add_subplot(gs[1], facecolor="black")
         self.topAx.set_aspect("equal")
         self.sideAx.set_aspect("equal")
 
@@ -121,6 +121,18 @@ class StageDraw:
                 alpha=1,
                 origin="lower",
             )
+
+    # Takes a snapshot of the stage, and stores in a directory
+    def snapshot(self, name: str):
+        self.topAx.set_axis_off()
+        self.sideAx.set_axis_off()
+        self.topAx.set_xlim(0, self.descriptor.width)
+        self.topAx.set_ylim(0, c.LIGHT_SOURCE_DIAMETER)
+        self.sideAx.set_xlim(0, self.descriptor.width)
+        self.sideAx.set_ylim(0, self.descriptor.height)
+        self.fig.savefig(name, dpi=300, bbox_inches="tight", pad_inches=0)
+        self.topAx.set_axis_on()
+        self.sideAx.set_axis_on()
 
     # Clears the stage
     def clean(self):

@@ -266,7 +266,18 @@ class Choreography:
                         print("Unknown smokemachine action: " + arg)
                 pass
             elif t == "lightgroup":
-                pass
+                name = step[1]
+                lightGroupObj = self.objectBins["lightGroups"][name]
+                action = step[2]
+                arg = step[3]
+                if action == "colour":
+                    lightGroupObj.setColour(colour.Colour(step[3]))
+                elif action == "intensity":
+                    lightGroupObj.setIntensity(step[3])
+                elif action == "spread":
+                    lightGroupObj.setSpread(step[3])
+                else:
+                    print("Unknown lightgroup action: " + arg)
             elif t == "smokemachinevolume":
                 pass
             elif t == "buffer":

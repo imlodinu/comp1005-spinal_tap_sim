@@ -1,0 +1,64 @@
+{
+    "backdrop": "powderblue",
+    "width": 600,
+    "height": 400,
+    "objects": {
+        "light_one": {
+            "type": "light",
+            "colour": ["purple", "blue"],
+            "position": -200,
+            "direction": 40,
+            "intensity": 5,
+            "spread": 40
+        },
+        "lg1": {
+            "type": "lightgroup",
+            "lights": ["light_one"]
+        },
+        "guitar": {
+            "type": "prop",
+            "img": "../assets/props/guitar.png",
+            "scale": 5,
+            "position": [210, 5]
+        },
+        "drums": {
+            "type": "prop",
+            "img": "../assets/props/drums.png",
+            "scale": 5,
+            "position": [390, 5]
+        },
+        "sm1": {
+            "type": "smokemachine",
+            "position": [100, 10],
+            "intensity": 10
+        },
+        "sm2": {
+            "type": "smokemachine",
+            "position": [500, 10],
+            "intensity": 3
+        },
+        "smv": {
+            "type": "smokemachinevolume",
+            "smokemachines": ["sm1", "sm2"],
+            "colour": [0.25098, 0.52549, 0.78039]
+        }
+    },
+    "steps": [
+        [
+            ["light", "light_one", "position", "add", 15],
+            ["light", "light_one", "direction", "set", 80],
+            ["prop", "guitar", "position", "add", [0, 40]],
+            ["smokemachine", "sm1", "intensity", "add", 1],
+            ["smokemachine", "sm2", "intensity", "add", 1]
+        ],
+        [["prop", "drums", "position", "add", [30, 0]]],
+        [
+            ["light", "light_one", "position", "sub", 15],
+            ["light", "light_one", "direction", "set", 40],
+            ["prop", "guitar", "position", "sub", [0, 40]],
+            ["smokemachine", "sm1", "intensity", "sub", 1],
+            ["smokemachine", "sm2", "intensity", "sub", 1]
+        ],
+        [["prop", "drums", "position", "sub", [30, 0]]]
+    ]
+}

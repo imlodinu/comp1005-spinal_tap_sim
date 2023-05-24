@@ -1,0 +1,72 @@
+{
+    "backdrop": "file://../assets/backdrops/blue_gradient.png",
+    "width": 500,
+    "height": 400,
+    "objects": {
+        "light_one": {
+            "type": "light",
+            "colour": ["purple", "blue"],
+            "position": -200,
+            "direction": 40,
+            "intensity": 5,
+            "spread": 25
+        },
+        "light_two": {
+            "type": "light",
+            "colour": "red",
+            "position": 200,
+            "direction": 140,
+            "intensity": 5,
+            "spread": 25
+        },
+        "lg1": {
+            "type": "lightgroup",
+            "lights": ["light_one", "light_two"]
+        },
+        "guitar": {
+            "type": "prop",
+            "img": "../assets/props/guitar.png",
+            "scale": 5,
+            "position": [210, 5]
+        },
+        "sm1": {
+            "type": "smokemachine",
+            "position": [100, 10],
+            "intensity": 10
+        },
+        "sm2": {
+            "type": "smokemachine",
+            "position": [400, 10],
+            "intensity": 10
+        },
+        "smv": {
+            "type": "smokemachinevolume",
+            "smokemachines": ["sm1", "sm2"],
+            "colour": [1, 0.8901, 0.4902]
+        }
+    },
+    "steps": [
+        [
+            ["light", "light_one", "position", "add", 15],
+            ["light", "light_one", "direction", "set", 80],
+            ["light", "light_two", "position", "sub", 15],
+            ["light", "light_two", "direction", "set", 100],
+            ["lightgroup", "lg1", "colour", "green"],
+            ["prop", "guitar", "position", "add", [0, 40]],
+            ["smokemachine", "sm1", "intensity", "add", 1],
+            ["smokemachine", "sm2", "intensity", "add", 1]
+        ],
+        [["buffer", 1]],
+        [
+            ["light", "light_one", "position", "sub", 15],
+            ["light", "light_one", "direction", "set", 40],
+            ["light", "light_two", "position", "add", 15],
+            ["light", "light_two", "direction", "set", 140],
+            ["lightgroup", "lg1", "colour", "blue"],
+            ["prop", "guitar", "position", "sub", [0, 40]],
+            ["smokemachine", "sm1", "intensity", "sub", 1],
+            ["smokemachine", "sm2", "intensity", "sub", 1]
+        ],
+        [["buffer", 3]]
+    ]
+}

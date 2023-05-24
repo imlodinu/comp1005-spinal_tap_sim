@@ -8,3 +8,5 @@ LIGHT_SOURCE_RADIUS = LIGHT_SOURCE_DIAMETER / 2  # Radius of the light source in
 
 SMOKE_SIM_RESOLUTION = 0.2  # Resolution of the smoke simulation
 SMOKE_MACHINE_RADIUS = 20  # Radius of the smoke machine
+
+CACHE_IMAGES = True  # Whether to cache images or not
