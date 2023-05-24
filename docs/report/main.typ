@@ -31,7 +31,11 @@ This program has a few features, based off the task specification:
   - Animation system with time intervals which repeats
 = User Guide
 == Running the program
-To first run the program, run
+To first run the program, install the dependencies
+```sh
+python3 -m pip install matplotlib scikit-image phiflow tqdm dataclasses
+```
+and run:
 ```sh
 python3 src/spinal-tap.py
 ```
